@@ -9,6 +9,7 @@ from mozilla_version.errors import PatternNotMatchedError, TooManyTypesError, No
 from mozilla_version.gecko import (
     GeckoVersion, FirefoxVersion, DeveditionVersion,
     ThunderbirdVersion, FennecVersion, GeckoSnapVersion,
+    SeamonkeyVersion,
 )
 from mozilla_version.test import does_not_raise
 
@@ -730,3 +731,20 @@ def test_gecko_version_hashable():
     It is possible to hash `GeckoVersion`.
     """
     hash(GeckoVersion.parse('63.0'))
+
+
+@pytest.mark.parametrize('version_string', (
+    '2.53.3', '2.53.1b1', '2.48b1', '2.1rc2', '1.1.17', '1.1b', '1.1a'
+))
+def test_seamonkey_version(version_string):
+    SeamonkeyVersion.parse(version_string)
+
+
+@pytest.mark.parametrize('version_string, field, expected', (
+        ('2.52', 'minor_number', '2.53'),
+        ('2.51', 'patch_number', '2.51.1'),
+        ('2.53.1', 'minor_number', '2.54.0'),
+))
+def test_seamonkey_version_bumps_raises(version_string, field, expected):
+    version = SeamonkeyVersion.parse(version_string)
+    assert str(version.bump(field)) == expected

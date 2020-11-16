@@ -673,3 +673,30 @@ class GeckoSnapVersion(GeckoVersion):
         """
         string = super(GeckoSnapVersion, self).__str__()
         return string.replace('build', '-')
+
+
+@attr.s(frozen=True, eq=False, hash=True)
+class SeamonkeyVersion(BaseVersion):
+    """Class that validates and handles Seamonkey version numbers.
+    """
+
+    _VALID_ENOUGH_VERSION_PATTERN = re.compile(r"""
+        ^(?P<major_number>\d+)
+        \.(?P<minor_number>\d+)
+        (\.(?P<patch_number>\d+))?
+        (
+            (?P<is_nightly>a1?)
+            |rc(?P<release_candidate_number>\d+)
+            |b(?P<beta_number>\d+)?
+        )?$""", re.VERBOSE)
+
+    _OPTIONAL_NUMBERS = BaseVersion._OPTIONAL_NUMBERS + (
+        'release_candidate_number', 'beta_number'
+    )
+
+    _ALL_NUMBERS = BaseVersion._MANDATORY_NUMBERS + _OPTIONAL_NUMBERS
+
+    beta_number = attr.ib(type=int, converter=strictly_positive_int_or_none, default=None)
+    release_candidate_number = attr.ib(
+        type=int, converter=strictly_positive_int_or_none, default=None
+    )
