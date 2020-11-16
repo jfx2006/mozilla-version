@@ -675,17 +675,15 @@ class GeckoSnapVersion(GeckoVersion):
         return string.replace('build', '-')
 
 
-@attr.s(frozen=True, eq=False, hash=True)
-class SeamonkeyVersion(BaseVersion):
-    """Class that validates and handles Seamonkey version numbers.
+class SeamonkeyVersion(GeckoVersion):
+    """Class that validates and handles Seamonkey 2.x version numbers.
     """
-
     _VALID_ENOUGH_VERSION_PATTERN = re.compile(r"""
         ^(?P<major_number>\d+)
         \.(?P<minor_number>\d+)
         (\.(?P<patch_number>\d+))?
         (
-            (?P<is_nightly>a1?)
+            (?P<is_nightly>a1)
             |rc(?P<release_candidate_number>\d+)
             |b(?P<beta_number>\d+)?
         )?$""", re.VERBOSE)
@@ -696,7 +694,19 @@ class SeamonkeyVersion(BaseVersion):
 
     _ALL_NUMBERS = BaseVersion._MANDATORY_NUMBERS + _OPTIONAL_NUMBERS
 
-    beta_number = attr.ib(type=int, converter=strictly_positive_int_or_none, default=None)
-    release_candidate_number = attr.ib(
-        type=int, converter=strictly_positive_int_or_none, default=None
-    )
+    def __attrs_post_init__(self):
+        """Override the Firefox checks for Seamonkey."""
+        if self.major_number < 2:
+            raise PatternNotMatchedError(self, ["Seamonkey 1 version numbers not supported."])
+
+    def _create_bump_kwargs(self, field):
+        bump_kwargs = BaseVersion._create_bump_kwargs(self, field)
+        if bump_kwargs.get('beta_number') == 0:
+            if self.is_beta:
+                bump_kwargs['beta_number'] = 1
+            else:
+                del bump_kwargs['beta_number']
+
+        bump_kwargs['is_nightly'] = self.is_nightly
+
+        return bump_kwargs

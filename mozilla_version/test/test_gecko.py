@@ -734,10 +734,19 @@ def test_gecko_version_hashable():
 
 
 @pytest.mark.parametrize('version_string', (
-    '2.53.3', '2.53.1b1', '2.48b1', '2.1rc2', '1.1.17', '1.1b', '1.1a'
+    '2.53.3', '2.53.1b1', '2.48b1', '2.1rc2'
 ))
 def test_seamonkey_version(version_string):
     SeamonkeyVersion.parse(version_string)
+
+
+@pytest.mark.parametrize('version_string', (
+    '1.1.17', '1.1b', '1.1a'
+))
+def test_seamonkey_old_version_raises(version_string):
+    """Test that Seamonkey version 1 is not parsed."""
+    with pytest.raises(PatternNotMatchedError):
+        SeamonkeyVersion.parse(version_string)
 
 
 @pytest.mark.parametrize('version_string, field, expected', (
